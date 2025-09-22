@@ -50,7 +50,7 @@ public class MyList {
 		prev.setNext(toRemove.getNext());
 
 		size--;
-		
+
 		return data;
 	}
 
@@ -73,17 +73,54 @@ public class MyList {
 		this.root = null;
 	}
 
-	public int size() {
+	public int indexOf(int value) {
+		Node tmp = root;
+		int i = 0;
+		while (tmp != null && tmp.getData() != value) {
+			tmp = tmp.getNext();
+			i++;
+		}
+		if (tmp == null)
+			return -1;
+		return i;
+	}
+
+	public boolean contains(int value) {
 		/*
-		 * if (root == null) return 0;
-		 * 
-		 * int count = 0;
-		 * 
-		 * Node node = root; while (node != null) { count++; node = node.getNext(); }
-		 * 
-		 * return count;
+		 * Node tmp = root; while (tmp != null) { if (tmp.getData() == value) return true; tmp =
+		 * tmp.getNext(); } return false;
 		 */
 
+		return indexOf(value) != -1;
+	}
+
+	public void selectionSort() {
+		if (root == null || root.getNext() == null) {
+			return;
+		}
+
+		Node current = root;
+
+		while (current != null) {
+			Node minNode = current;
+			Node next = current.getNext();
+
+			while (next != null) {
+				if (next.getData() < minNode.getData()) {
+					minNode = next;
+				}
+				next = next.getNext();
+			}
+
+			int temp = current.getData();
+			current.setData(minNode.getData());
+			minNode.setData(temp);
+
+			current = current.getNext();
+		}
+	}
+
+	public int size() {
 		return size;
 	}
 
@@ -105,7 +142,7 @@ public class MyList {
 	}
 
 	public static void main(String[] args) {
-		MyList m = new MyList();
+		final MyList m = new MyList();
 
 		m.add(1);
 		m.add(2);
@@ -119,6 +156,20 @@ public class MyList {
 		System.out.println(m.get(0));
 		System.out.println(m.get(1));
 		System.out.println(m.get(2));
+
+		m.remove(0);
+		System.out.println(m.toString());
+
+		m.add(7);
+		m.add(8);
+		m.add(9);
+
+		System.out.println(m.toString());
+		System.out.println(m.indexOf(8));
+		System.out.println(m.indexOf(10));
+
+		System.out.println(m.contains(9));
+		System.out.println(m.contains(12));
 	}
 
 }
