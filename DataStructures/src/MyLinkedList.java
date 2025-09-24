@@ -1,4 +1,6 @@
-public class MyLinkedList {
+import java.util.Iterator;
+
+public class MyLinkedList implements Iterable<Integer> {
 
 	private Node root, last;
 	private int size;
@@ -43,9 +45,9 @@ public class MyLinkedList {
 		}
 
 		Node toRemove = prev.getNext();
-		if(toRemove == last)
+		if (toRemove == last)
 			last = prev;
-		
+
 		int data = toRemove.getData();
 		prev.setNext(toRemove.getNext());
 
@@ -86,12 +88,14 @@ public class MyLinkedList {
 		return i;
 	}
 
-	public boolean contains(int value) {
-		/*
-		 * Node tmp = root; while (tmp != null) { if (tmp.getData() == value) return true; tmp =
-		 * tmp.getNext(); } return false;
-		 */
+	public boolean isEmpty() {
+		return size == 0;
+	}
 
+	public boolean verifySort() {
+	}
+
+	public boolean contains(int value) {
 		return indexOf(value) != -1;
 	}
 
@@ -140,6 +144,23 @@ public class MyLinkedList {
 	@Override
 	public String toString() {
 		return root == null ? "[]" : "[" + root.toString() + "]";
+	}
+
+	@Override
+	public Iterator<Integer> iterator() {
+		Node node = new Node(root);
+		return new Iterator<Integer>() {
+			@Override
+			public Integer next() {
+				node = node.getNext();
+				return node.getData();
+			}
+
+			@Override
+			public boolean hasNext() {
+				return node.getNext() != null;
+			}
+		};
 	}
 
 	public static void main(String[] args) {

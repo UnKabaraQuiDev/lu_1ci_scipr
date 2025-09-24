@@ -8,6 +8,10 @@ public class Node {
 		this.data = data;
 	}
 
+	public Node(Node root) {
+		this.next = root;
+	}
+
 	public Node(int data, Node next) {
 		this.data = data;
 		this.next = next;
