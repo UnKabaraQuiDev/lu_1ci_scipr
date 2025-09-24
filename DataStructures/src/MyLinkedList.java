@@ -1,12 +1,12 @@
-public class MyList {
+public class MyLinkedList {
 
-	private Node root;
+	private Node root, last;
 	private int size;
 
-	public MyList() {
+	public MyLinkedList() {
 	}
 
-	public MyList(Node root) {
+	public MyLinkedList(Node root) {
 		this.root = root;
 	}
 
@@ -16,15 +16,12 @@ public class MyList {
 		final Node newNode = new Node(val);
 
 		if (root == null) {
-			this.root = newNode;
+			last = root = newNode;
 			return;
 		}
 
-		Node node = root;
-		while (node.getNext() != null) {
-			node = node.getNext();
-		}
-		node.setNext(newNode);
+		last.setNext(newNode);
+		last = newNode;
 	}
 
 	public int remove(int idx) {
@@ -46,6 +43,9 @@ public class MyList {
 		}
 
 		Node toRemove = prev.getNext();
+		if(toRemove == last)
+			last = prev;
+		
 		int data = toRemove.getData();
 		prev.setNext(toRemove.getNext());
 
@@ -71,6 +71,7 @@ public class MyList {
 	public void clear() {
 		size = 0;
 		this.root = null;
+		this.last = null;
 	}
 
 	public int indexOf(int value) {
@@ -142,7 +143,7 @@ public class MyList {
 	}
 
 	public static void main(String[] args) {
-		final MyList m = new MyList();
+		final MyLinkedList m = new MyLinkedList();
 
 		m.add(1);
 		m.add(2);
