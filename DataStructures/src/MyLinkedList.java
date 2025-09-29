@@ -1,6 +1,4 @@
-import java.util.Iterator;
-
-public class MyLinkedList implements Iterable<Integer> {
+public class MyLinkedList {
 
 	private Node root, last;
 	private int size;
@@ -93,6 +91,36 @@ public class MyLinkedList implements Iterable<Integer> {
 	}
 
 	public boolean verifySort() {
+		for (int i = 0; i < size - 1; i++) {
+			int posmin = i;
+			for (int j = i + 1; j < size; j++)
+				if (get(j) < get(posmin))
+					return false;
+		}
+		return true;
+	}
+
+	public void reverse() {
+		for (int i = 0; i < size / 2; i++) {
+			int temp = get(i);
+			set(i, get(size - i - 1));
+			set(size - i - 1, temp);
+
+			System.out.println("--");
+			print();
+		}
+	}
+
+	public void set(int data, int index) {
+		if (index < 0 || index >= size) {
+			throw new IndexOutOfBoundsException("Index " + index + " out of bounds");
+		} else {
+			Node tmp = root;
+			for (int i = 0; i < index; i++) {
+				tmp = tmp.getNext();
+			}
+			tmp.setData(data);
+		}
 	}
 
 	public boolean contains(int value) {
@@ -144,23 +172,6 @@ public class MyLinkedList implements Iterable<Integer> {
 	@Override
 	public String toString() {
 		return root == null ? "[]" : "[" + root.toString() + "]";
-	}
-
-	@Override
-	public Iterator<Integer> iterator() {
-		Node node = new Node(root);
-		return new Iterator<Integer>() {
-			@Override
-			public Integer next() {
-				node = node.getNext();
-				return node.getData();
-			}
-
-			@Override
-			public boolean hasNext() {
-				return node.getNext() != null;
-			}
-		};
 	}
 
 	public static void main(String[] args) {
