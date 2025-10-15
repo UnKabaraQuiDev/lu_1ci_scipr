@@ -12,7 +12,7 @@ public class SierpinskiTriangle extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPane;
 
-	private int depthCount = 7;
+	private int depthCount = 5;
 
 	/**
 	 * Create the frame.
