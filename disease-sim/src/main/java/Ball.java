@@ -1,6 +1,9 @@
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 import org.joml.Vector2f;
+
+import lu.pcy113.pclib.PCUtils;
 
 public class Ball {
 
@@ -9,7 +12,7 @@ public class Ball {
 	private Vector2f position;
 	private Vector2f velocity;
 	private boolean locked = false;
-	private int radius;
+	private float radius;
 	private DiseaseState state = DiseaseState.HEALTHY;
 	private Long infectedTime = null;
 
@@ -25,8 +28,8 @@ public class Ball {
 		this.radius = radius;
 
 		this.state = Math.random() < 0.1f ? DiseaseState.SICK : DiseaseState.HEALTHY;
-		this.locked = state == DiseaseState.SICK ? false : Math.random() > 0.05f;
-		this.infectedTime = System.currentTimeMillis();
+		this.locked = state == DiseaseState.SICK ? false : radius > 8 && Math.random() > 0.05f;
+		this.infectedTime = state == DiseaseState.SICK ? System.currentTimeMillis()+ PCUtils.randomLongRange(5000, 20000) : null;
 	}
 
 	public Ball(Vector2f position, Vector2f velocity, int radius, DiseaseState state) {
@@ -52,7 +55,7 @@ public class Ball {
 		this.velocity.set(rotation);
 	}
 
-	public int getRadius() {
+	public float getRadius() {
 		return radius;
 	}
 
@@ -72,16 +75,18 @@ public class Ball {
 		return other.position.distance(this.position) < radius + other.radius;
 	}
 
-	public void bounce(Ball other) {
+	public boolean bounce(Ball other) {
 		if (!collidesWith(other) || this.state == DiseaseState.DEAD || other.state == DiseaseState.DEAD)
-			return;
+			return false;
 
 		if ((other.state == DiseaseState.SICK || this.state == DiseaseState.SICK)
-				&& !(other.state == DiseaseState.CURED || this.state == DiseaseState.CURED)) {
+				&& !(other.state == DiseaseState.IMUNE || this.state == DiseaseState.IMUNE)) {
 			other.state = DiseaseState.SICK;
 			this.state = DiseaseState.SICK;
-			other.infectedTime = other.infectedTime == null ? System.currentTimeMillis() : other.infectedTime;
-			this.infectedTime = this.infectedTime == null ? System.currentTimeMillis() : this.infectedTime;
+			other.infectedTime = other.infectedTime == null ? System.currentTimeMillis() + PCUtils.randomIntRange(10000, 20000)
+					: other.infectedTime;
+			this.infectedTime = this.infectedTime == null ? System.currentTimeMillis() + PCUtils.randomIntRange(10000, 20000)
+					: this.infectedTime;
 		}
 
 		Vector2f delta = new Vector2f(this.position).sub(other.position);
@@ -110,6 +115,17 @@ public class Ball {
 			this.position.add(correction);
 			other.position.sub(correction);
 		}
+
+		if (this.canHaveKids() && other.canHaveKids()) {
+			return Math.random() < 0.01f;
+		}
+
+		return false;
+	}
+
+	private boolean canHaveKids() {
+		return /* (this.state == DiseaseState.IMUNE || this.state == DiseaseState.HEALTHY) && */ state != DiseaseState.DEAD
+				&& this.radius >= 9;
 	}
 
 	public void doPhysics(float dt, float width, float height) {
@@ -118,22 +134,33 @@ public class Ball {
 			checkWallCollision(width, height);
 		}
 
+		if (state != DiseaseState.DEAD) {
+			radius = PCUtils.clamp(0, 15, radius + 0.001f);
+			if (radius == 15) {
+				state = DiseaseState.DEAD;
+				velocity.zero();
+				infectedTime = System.currentTimeMillis() + 5000;
+				return;
+			}
+		}
+
 		if (infectedTime == null || state == DiseaseState.DEAD) {
 			return;
 		}
-		if (System.currentTimeMillis() > infectedTime + SICK_TIMEOUT && state == DiseaseState.SICK) {
-			if (Math.random() < 0.1f) {
+		if (System.currentTimeMillis() > infectedTime && state == DiseaseState.SICK) {
+			if (Math.random() < (0.1f * PCUtils.map(radius, 5, 10, 10, 1))) {
 				state = DiseaseState.DEAD;
 				velocity.zero();
-				infectedTime = null;
+				infectedTime = System.currentTimeMillis() + PCUtils.randomLongRange(10000, 20000);
 			} else {
-				state = DiseaseState.CURED;
-				infectedTime = System.currentTimeMillis();
+				state = DiseaseState.IMUNE;
+				infectedTime = System.currentTimeMillis() + PCUtils.randomLongRange(10000, 20000);
 			}
-		} else if (System.currentTimeMillis() > infectedTime + SICK_TIMEOUT && state == DiseaseState.CURED) {
-			this.state = DiseaseState.HEALTHY;
+		} else if (System.currentTimeMillis() > infectedTime && state == DiseaseState.IMUNE) {
+			state = DiseaseState.HEALTHY;
 			this.infectedTime = null;
 		}
+
 	}
 
 	private void checkWallCollision(float width, float height) {
@@ -175,6 +202,14 @@ public class Ball {
 	public void draw(Graphics2D g2d) {
 		g2d.setColor(state.getColor());
 		g2d.fillOval((int) (position.x - radius), (int) (position.y - radius), (int) radius * 2, (int) radius * 2);
+		if (canHaveKids()) {
+			g2d.setColor(Color.CYAN);
+			g2d.drawOval((int) (position.x - radius), (int) (position.y - radius), (int) radius * 2, (int) radius * 2);
+		}
+	}
+
+	public Long getInfectedTime() {
+		return infectedTime;
 	}
 
 	public boolean isInside(int x, int y) {

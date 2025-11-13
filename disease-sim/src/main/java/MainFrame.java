@@ -1,30 +1,30 @@
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.Random;
 
 import javax.swing.JFrame;
+import javax.swing.JSplitPane;
 import javax.swing.Timer;
 
 import org.joml.Vector2f;
 
 import lu.pcy113.pclib.PCUtils;
+import lu.pcy113.pclib.swing.JLineGraph;
 
 public class MainFrame extends javax.swing.JFrame {
 
 	private Balls balls;
+	private JLineGraph graphPanel;
 
 	public MainFrame() {
 		super.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		initComponents();
-		balls = new Balls(drawPanel1);
+		balls = new Balls(drawPanel1, graphPanel);
 		drawPanel1.setBalls(balls);
 		drawPanel1.setBackground(Color.WHITE);
 
-		new Timer(1000 / 60, (e) -> updateView()).start();
-		new Timer(1000, (e) -> {
-			balls.recap();
-		}).start();
+		new Timer(1000 / 120, (e) -> updateView()).start();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -32,36 +32,44 @@ public class MainFrame extends javax.swing.JFrame {
 	// Code">//GEN-BEGIN:initComponents
 	private void initComponents() {
 		drawPanel1 = new DrawPanel();
+		graphPanel = new JLineGraph();
 
-		javax.swing.GroupLayout drawPanel1Layout = new javax.swing.GroupLayout(drawPanel1);
-		drawPanel1.setLayout(drawPanel1Layout);
-		drawPanel1Layout
-				.setHorizontalGroup(drawPanel1Layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-								drawPanel1Layout.createSequentialGroup().addContainerGap(475, Short.MAX_VALUE).addGap(44, 44, 44)));
-		drawPanel1Layout
-				.setVerticalGroup(drawPanel1Layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(drawPanel1Layout.createSequentialGroup().addGap(27, 27, 27).addContainerGap(366, Short.MAX_VALUE)));
+		getContentPane().setLayout(new BorderLayout());
+
+		final JSplitPane subPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphPanel.createLegend(true, true), graphPanel);
+		subPanel.getLeftComponent().setMinimumSize(new Dimension(200, 0));
+		subPanel.setPreferredSize(new Dimension(0, 200));
+		subPanel.setDividerLocation(15);
+		subPanel.validate();
 
 		getContentPane().add(drawPanel1, java.awt.BorderLayout.CENTER);
+		getContentPane().add(subPanel, java.awt.BorderLayout.NORTH);
 
 		super.setMinimumSize(new Dimension(1200, 1000));
+
+		super.setExtendedState(super.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 
 		pack();
 	}// </editor-fold>//GEN-END:initComponents
 
+	private long old = System.currentTimeMillis();
+
 	public void updateView() {
-		if (balls.size() < 100) {
+		System.err.println("fps: " + ((double) 1000 / (System.currentTimeMillis() - old)));
+
+		if (balls.size() < 500) {
 			balls
 					.add(new Ball(
 							new Vector2f(PCUtils.randomIntRange(0, drawPanel1.getWidth()),
 									PCUtils.randomIntRange(0, drawPanel1.getHeight())),
-							new Vector2f((float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1).normalize(), 15));
+							new Vector2f((float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1).normalize(),
+							PCUtils.randomIntRange(5, 10)));
 		}
-		balls.doPhysics();
+
+		balls.doPhysics(1f / (System.currentTimeMillis() - old));
 		drawPanel1.repaint();
+
+		old = System.currentTimeMillis();
 	}
 
 	public static void main(String args[]) {

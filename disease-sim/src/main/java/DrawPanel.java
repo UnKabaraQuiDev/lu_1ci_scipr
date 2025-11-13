@@ -4,6 +4,10 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import org.joml.Vector2f;
+
+import lu.pcy113.pclib.PCUtils;
+
 public class DrawPanel extends javax.swing.JPanel implements MouseListener {
 
 	private Balls balls;
@@ -45,6 +49,13 @@ public class DrawPanel extends javax.swing.JPanel implements MouseListener {
 		final Ball b = balls.getSelectedBall(e.getX(), e.getY());
 		if (b != null) {
 			b.setState(DiseaseState.SICK);
+		} else {
+			for (int i = 0; i < 100; i++) {
+				balls
+						.add(new Ball(new Vector2f(PCUtils.randomIntRange(0, getWidth()), PCUtils.randomIntRange(0, getHeight())),
+								new Vector2f((float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1).normalize(),
+								PCUtils.randomIntRange(5, 10)));
+			}
 		}
 	}
 

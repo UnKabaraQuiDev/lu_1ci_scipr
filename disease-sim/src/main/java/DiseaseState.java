@@ -2,7 +2,7 @@ import java.awt.Color;
 
 public enum DiseaseState {
 
-	HEALTHY(Color.BLUE), SICK(Color.RED), CURED(Color.GREEN), DEAD(Color.GRAY);
+	HEALTHY(Color.BLUE), SICK(Color.RED), IMUNE(Color.GREEN), DEAD(Color.GRAY);
 
 	private Color color;
 
