@@ -1,50 +1,44 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.geom.Line2D;
 
-public class Line implements CustomShape {
+public class Line extends Line2D.Double implements CustomShape {
 
 	private Color color;
-	private Point p1, p2;
 
 	public Line() {
 	}
 
 	public Line(Color color2, Point p1, Point p2) {
+		super(p1.x, p1.y, p2.x, p2.y);
 		this.color = color2;
-		this.p1 = p1;
-		this.p2 = p2;
 	}
 
+	@Override
 	public void draw(Graphics2D g2d) {
 		g2d.setColor(color);
-		g2d.drawLine(p1.x, p1.y, p2.x, p2.y);
-	}
-
-	public Point getP1() {
-		return p1;
-	}
-
-	public void setP1(Point p1) {
-		this.p1 = p1;
-	}
-
-	public Point getP2() {
-		return p2;
-	}
-
-	public void setP2(Point p2) {
-		this.p2 = p2;
+		g2d.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
 	}
 
 	@Override
 	public void setStartpoint(Point p1) {
-		this.p1 = p1;
+		super.setLine(p1.getX(), p1.getY(), x2, y2);
 	}
 
 	@Override
 	public void setEndpoint(Point p2) {
-		this.p2 = p2;
+		super.setLine(x1, y1, p2.getX(), p2.getY());
+	}
+
+	@Override
+	public Point getStartpoint() {
+		return new Point((int) x1, (int) y1);
+	}
+
+	@Override
+	public Point getEndpoint() {
+		return new Point((int) x2, (int) y2);
 	}
 
 	public Color getColor() {
@@ -57,7 +51,6 @@ public class Line implements CustomShape {
 
 	@Override
 	public String toString() {
-		return "Line [color=" + color + ", p1=" + p1 + ", p2=" + p2 + "]";
+		return "Line [color=" + color + "]";
 	}
-
 }

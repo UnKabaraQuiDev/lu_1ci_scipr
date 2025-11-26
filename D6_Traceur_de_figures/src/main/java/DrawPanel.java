@@ -1,8 +1,6 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -15,15 +13,16 @@ import java.nio.file.StandardOpenOption;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
-public class DrawPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener {
+public class DrawPanel extends JPanel implements MouseListener, MouseMotionListener {
 
 	private MainFrame mainFrame;
 
 	private Shapes shapes;
 
-	private int pressedBtn;
 	private CustomShape currentShape;
 	private Color color = Color.BLACK;
+
+	private Tool usingTool;
 
 	public DrawPanel(MainFrame mainFrame) {
 		this(new Shapes(), mainFrame);
@@ -35,7 +34,6 @@ public class DrawPanel extends JPanel implements KeyListener, MouseListener, Mou
 		this.shapes = lines;
 		this.mainFrame = mainFrame;
 
-		this.addKeyListener(this);
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 	}
@@ -65,91 +63,30 @@ public class DrawPanel extends JPanel implements KeyListener, MouseListener, Mou
 		drawPanelMouseReleased(e);
 	}
 
-	@Override
-	public void keyTyped(KeyEvent e) {
-
-	}
-
 	private void drawPanelMousePressed(MouseEvent e) {
-		if (e.getButton() == MouseEvent.BUTTON1) {
-			currentShape = new Line(color, e.getPoint(), e.getPoint());
-			shapes.add(currentShape);
-		} else if (e.getButton() == MouseEvent.BUTTON3) {
-			currentShape = new Rectangle(color, e.getPoint(), e.getPoint());
-			shapes.add(currentShape);
+		if (usingTool != null) {
+			usingTool.onClick(e, this);
 		}
 
 		mainFrame.getList().setListData(shapes.getShapes().toArray());
 	}
 
 	private void drawPanelMouseReleased(MouseEvent e) {
-		currentShape.setEndpoint(e.getPoint());
+		if (usingTool != null) {
+			usingTool.onReleased(e, this);
+		}
 
 		this.repaint();
 		mainFrame.getList().setListData(shapes.getShapes().toArray());
 	}
 
 	private void drawPanelMouseDragged(MouseEvent e) {
-		currentShape.setEndpoint(e.getPoint());
+		if (usingTool != null) {
+			usingTool.onDragged(e, this);
+		}
 
 		this.repaint();
 		mainFrame.getList().setListData(shapes.getShapes().toArray());
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_S && e.isControlDown()) {
-			final JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
-			if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-				return;
-			}
-
-			final File file = fileChooser.getSelectedFile();
-			try {
-				if (file.exists()) {
-					file.delete();
-				}
-				file.getParentFile().mkdirs();
-				file.createNewFile();
-				Files.write(Paths.get(file.getPath()), shapes.asJSON().getBytes(), StandardOpenOption.CREATE);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-		} else if (e.getKeyCode() == KeyEvent.VK_O && e.isControlDown()) {
-			final JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
-			if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-				return;
-			}
-
-			final File file = fileChooser.getSelectedFile();
-			try {
-				final String str = new String(Files.readAllBytes(Paths.get(file.getPath())));
-				shapes.fromJSON(str);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-		}else if (e.getKeyCode() == KeyEvent.VK_I && e.isControlDown()) {
-			final JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
-			if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-				return;
-			}
-
-			final File file = fileChooser.getSelectedFile();
-			try {
-				final String str = new String(Files.readAllBytes(Paths.get(file.getPath())));
-				shapes.appendJSON(str);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-		}
-		
-		mainFrame.getList().setListData(shapes.getShapes().toArray());
-		repaint();
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-
 	}
 
 	public Shapes getShapes() {
@@ -186,6 +123,78 @@ public class DrawPanel extends JPanel implements KeyListener, MouseListener, Mou
 
 	public void setColor(Color color) {
 		this.color = color;
+	}
+
+	public Tool getUsingTool() {
+		return usingTool;
+	}
+
+	public void setUsingTool(Tool usingTool) {
+		if(this.usingTool != null) {
+			this.usingTool.onDeinit(this);
+		}
+		this.usingTool = usingTool;
+		this.usingTool.onInit(this);
+	}
+
+	public CustomShape getCurrentShape() {
+		return currentShape;
+	}
+
+	public void setCurrentShape(CustomShape currentShape) {
+		this.currentShape = currentShape;
+	}
+
+	public void triggerSaveAs() {
+		final JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
+		fileChooser.setName("Save As...");
+		if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			return;
+		}
+
+		final File file = fileChooser.getSelectedFile();
+		try {
+			if (file.exists()) {
+				file.delete();
+			}
+			file.getParentFile().mkdirs();
+			file.createNewFile();
+			Files.write(Paths.get(file.getPath()), shapes.asJSON().getBytes(), StandardOpenOption.CREATE);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	public void triggerOpen() {
+		final JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
+		fileChooser.setName("Open");
+		if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			return;
+		}
+
+		final File file = fileChooser.getSelectedFile();
+		try {
+			final String str = new String(Files.readAllBytes(Paths.get(file.getPath())));
+			shapes.fromJSON(str);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	public void triggerImport() {
+		final JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
+		fileChooser.setName("Import");
+		if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			return;
+		}
+
+		final File file = fileChooser.getSelectedFile();
+		try {
+			final String str = new String(Files.readAllBytes(Paths.get(file.getPath())));
+			shapes.appendJSON(str);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 	}
 
 }
