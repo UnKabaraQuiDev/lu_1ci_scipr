@@ -1,0 +1,9 @@
+move 20
+down
+loop 2
+{
+	rotate 90
+	// comment
+	move 30
+	/* block comment */
+}
