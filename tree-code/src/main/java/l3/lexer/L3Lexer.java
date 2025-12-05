@@ -37,6 +37,7 @@ import static l3.lexer.TokenTypes.FINALLY;
 import static l3.lexer.TokenTypes.FLOAT;
 import static l3.lexer.TokenTypes.FOR;
 import static l3.lexer.TokenTypes.FUN;
+import static l3.lexer.TokenTypes.GOTO;
 import static l3.lexer.TokenTypes.GREATER;
 import static l3.lexer.TokenTypes.GREATER_EQUALS;
 import static l3.lexer.TokenTypes.HASH;
@@ -499,6 +500,7 @@ public class L3Lexer {
 			case "long" -> type = LONG;
 			case "float" -> type = FLOAT;
 			case "double" -> type = DOUBLE;
+			case "goto" -> type = GOTO;
 			default -> type = getIdentType(strValue);
 			}
 

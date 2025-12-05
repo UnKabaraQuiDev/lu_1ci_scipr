@@ -9,7 +9,7 @@ import custom.parser.CustomParser;
 import l3.lexer.LexerException;
 import l3.parser.ParserException;
 
-public class MainTest {
+public class ParserTest {
 
 	@Test
 	public void test() throws IOException, LexerException, ParserException {

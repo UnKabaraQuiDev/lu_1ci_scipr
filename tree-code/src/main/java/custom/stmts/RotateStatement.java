@@ -18,6 +18,10 @@ public class RotateStatement extends Statement {
 		this.angle = dist;
 	}
 
+	public int getAngle() {
+		return angle;
+	}
+
 	@Override
 	public String toString() {
 		return "RotateStatement [angle=" + angle + "]";

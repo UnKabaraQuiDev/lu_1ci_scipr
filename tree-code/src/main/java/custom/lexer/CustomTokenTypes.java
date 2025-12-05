@@ -8,7 +8,7 @@ import l3.lexer.TokenType;
 
 public enum CustomTokenTypes implements TokenType {
 
-	MOVE("move"), UP("up"), DOWN("down"), ROTATE("rotate"), LOOP("loop");
+	MOVE("move"), UP("up"), DOWN("down"), ROTATE("rotate"), LOOP("loop"), COLOR("color"), THICKNESS("thickness");
 
 	public static final Map<String, CustomTokenTypes> ALL;
 	static {

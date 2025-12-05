@@ -1,12 +1,13 @@
 package custom.stmts;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import lu.pcy113.pclib.PCUtils;
 
-public class ParentStatement extends Statement {
+public class ParentStatement extends Statement implements Iterable<Statement> {
 
 	private List<Statement> children = new ArrayList<>();
 
@@ -18,6 +19,11 @@ public class ParentStatement extends Statement {
 	public String toString() {
 		return this.getClass().getSimpleName() + "{\n" + children.parallelStream()
 				.map(c -> PCUtils.leftPadLine(c.toString(), "\t")).collect(Collectors.joining("\n")) + "\n}";
+	}
+
+	@Override
+	public Iterator<Statement> iterator() {
+		return children.iterator();
 	}
 
 }

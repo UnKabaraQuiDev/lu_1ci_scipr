@@ -1,9 +1,16 @@
-move 20
+thickness 2.0f
+goto 100 100
+color "#ff0000"
 down
-loop 2
+
+loop 36
 {
-	rotate 90
-	// comment
-	move 30
-	/* block comment */
+    loop 4
+    {
+        move 20
+        rotate 90
+    }
+    rotate 10
+    color "#ababab"
+    move 5
 }

@@ -18,7 +18,7 @@ public class MoveStatement extends Statement {
 		this.dist = dist;
 	}
 
-	public int getDist() {
+	public int getDistance() {
 		return dist;
 	}
 
