@@ -88,14 +88,13 @@ public enum CustomTokenTypes implements TokenType {
 	@Override
 	public String toString() {
 		if (fixed && string) {
-			return CustomTokenTypes.class.getSimpleName() + "[" + name() + ", fixed=" + fixed + ", string=" + string
-					+ ", stringValue=" + stringValue + "]";
+			return CustomTokenTypes.class.getSimpleName() + "[" + name() + ", fixed=" + fixed + ", string=" + string + ", stringValue="
+					+ stringValue + "]";
 		} else if (fixed && !string) {
-			return CustomTokenTypes.class.getSimpleName() + "[" + name() + ", fixed=" + fixed + ", string=" + string
-					+ ", charValue=" + charValue + "]";
+			return CustomTokenTypes.class.getSimpleName() + "[" + name() + ", fixed=" + fixed + ", string=" + string + ", charValue="
+					+ charValue + "]";
 		} else {
-			return CustomTokenTypes.class.getSimpleName() + "[" + name() + ", fixed=" + fixed + ", string=" + string
-					+ "]";
+			return CustomTokenTypes.class.getSimpleName() + "[" + name() + ", fixed=" + fixed + ", string=" + string + "]";
 		}
 	}
 
