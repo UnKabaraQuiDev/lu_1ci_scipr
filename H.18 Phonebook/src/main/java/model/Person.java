@@ -2,6 +2,7 @@ package model;
 
 import lu.pcy113.pclib.db.autobuild.column.AutoIncrement;
 import lu.pcy113.pclib.db.autobuild.column.Column;
+import lu.pcy113.pclib.db.autobuild.column.Nullable;
 import lu.pcy113.pclib.db.autobuild.column.PrimaryKey;
 import lu.pcy113.pclib.db.impl.DataBaseEntry;
 
@@ -12,11 +13,14 @@ public class Person implements Comparable<Person>, DataBaseEntry {
 	@Column
 	protected int id;
 	@Column
+	@Nullable
 	protected String name;
 	@Column
+	@Nullable
 //	@Unique
 	protected String email;
 	@Column
+	@Nullable
 //	@Unique
 	protected String phone;
 
