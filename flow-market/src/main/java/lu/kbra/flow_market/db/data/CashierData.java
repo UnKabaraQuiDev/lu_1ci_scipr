@@ -1,4 +1,4 @@
-package db.data;
+package lu.kbra.flow_market.db.data;
 import lu.pcy113.pclib.PCUtils;
 import lu.pcy113.pclib.db.autobuild.column.AutoIncrement;
 import lu.pcy113.pclib.db.autobuild.column.Column;
@@ -11,7 +11,7 @@ public class CashierData implements DataBaseEntry {
 	@Column
 	@PrimaryKey
 	@AutoIncrement
-	protected int id;
+	protected long id;
 	@Column(length = 64)
 	@Unique
 	protected String username;

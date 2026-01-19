@@ -1,10 +1,12 @@
-package db.data;
+package lu.kbra.flow_market.db.data;
 
-import db.table.VendorTable;
+import lu.pcy113.pclib.db.autobuild.column.Check;
 import lu.pcy113.pclib.db.autobuild.column.Column;
 import lu.pcy113.pclib.db.autobuild.column.ForeignKey;
 import lu.pcy113.pclib.db.autobuild.column.PrimaryKey;
 import lu.pcy113.pclib.db.impl.DataBaseEntry;
+
+import lu.kbra.flow_market.db.table.VendorTable;
 
 public class ProductData implements DataBaseEntry {
 
@@ -17,6 +19,7 @@ public class ProductData implements DataBaseEntry {
 	@ForeignKey(table = VendorTable.class)
 	protected String vendorCode;
 	@Column
+	@Check("%NAME% > 0")
 	protected float price;
 
 }

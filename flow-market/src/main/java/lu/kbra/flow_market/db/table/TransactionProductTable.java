@@ -1,8 +1,9 @@
-package db.table;
+package lu.kbra.flow_market.db.table;
 
-import db.data.TransactionProductData;
 import lu.pcy113.pclib.db.DataBase;
 import lu.pcy113.pclib.db.DataBaseTable;
+
+import lu.kbra.flow_market.db.data.TransactionProductData;
 
 public class TransactionProductTable extends DataBaseTable<TransactionProductData> {
 

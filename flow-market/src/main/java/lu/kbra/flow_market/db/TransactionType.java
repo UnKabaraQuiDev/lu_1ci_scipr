@@ -1,4 +1,4 @@
-package db;
+package lu.kbra.flow_market.db;
 
 public enum TransactionType {
 
