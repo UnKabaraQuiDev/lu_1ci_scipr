@@ -22,4 +22,14 @@ public class ProductData implements DataBaseEntry {
 	@Check("%NAME% > 0")
 	protected float price;
 
+	public ProductData() {
+	}
+
+	public ProductData(String productCode, String name, String vendorCode, float price) {
+		this.productCode = productCode;
+		this.name = name;
+		this.vendorCode = vendorCode;
+		this.price = price;
+	}
+
 }
