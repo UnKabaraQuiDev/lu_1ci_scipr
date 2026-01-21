@@ -28,13 +28,13 @@ import lu.kbra.flow_market.db.table.VendorTable;
 						join = Type.LEFT,
 						on = "product.product_code = transaction_product.product_code",
 						columns = {
-								@ViewColumn(func = "SUM(COALESCE(product.price, 0)) + SUM(COALESCE(transaction_supplement.price, 0))", asName = "total_money"),
+								@ViewColumn(func = "SUM(COALESCE(product.price * transaction_product.count, 0)) + SUM(COALESCE(transaction_supplement.price, 0))", asName = "total_money"),
 								@ViewColumn(
-										func = "(SUM(COALESCE(product.price, 0)) + SUM(COALESCE(transaction_supplement.price, 0))) * percentage",
+										func = "(SUM(COALESCE(product.price * transaction_product.count, 0)) + SUM(COALESCE(transaction_supplement.price, 0))) * percentage",
 										asName = "vendor_money"
 								),
 								@ViewColumn(
-										func = "(SUM(COALESCE(product.price, 0)) + SUM(COALESCE(transaction_supplement.price, 0))) * (1-percentage)",
+										func = "(SUM(COALESCE(product.price * transaction_product.count, 0)) + SUM(COALESCE(transaction_supplement.price, 0))) * (1-percentage)",
 										asName = "orga_money"
 								) }
 				),

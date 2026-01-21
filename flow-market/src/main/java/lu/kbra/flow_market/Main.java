@@ -44,8 +44,8 @@ public class Main {
 		final CashierData cashier1 = cashiers.loadIfExistsElseInsert(new CashierData("user", "pass")).run();
 		final CashierData cashier2 = cashiers.loadIfExistsElseInsert(new CashierData("user1", "pass1")).run();
 
-		final VendorData vendor1 = vendors.loadPKIfExistsElseInsert(new VendorData("vend11", 0.8f)).run();
-		final VendorData vendor2 = vendors.loadPKIfExistsElseInsert(new VendorData("vend22", 0.68f)).run();
+		final VendorData vendor1 = vendors.loadPKIfExistsElseInsert(new VendorData("vend11", 0.8f, "aaaa-bbbb-cccc-...", "name1")).run();
+		final VendorData vendor2 = vendors.loadPKIfExistsElseInsert(new VendorData("vend22", 0.68f, "dddd-bbbb-cccc-...", "name2")).run();
 
 		final ProductData prod1 = products
 				.loadPKIfExistsElseInsert(new ProductData("prod1111", "Name Prod 1", vendor1.getVendorCode(), 100))

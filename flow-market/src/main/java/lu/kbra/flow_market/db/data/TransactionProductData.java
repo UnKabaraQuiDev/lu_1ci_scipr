@@ -1,5 +1,6 @@
 package lu.kbra.flow_market.db.data;
 
+import lu.pcy113.pclib.db.autobuild.column.Check;
 import lu.pcy113.pclib.db.autobuild.column.Column;
 import lu.pcy113.pclib.db.autobuild.column.ForeignKey;
 import lu.pcy113.pclib.db.autobuild.column.PrimaryKey;
@@ -18,5 +19,8 @@ public class TransactionProductData implements DataBaseEntry {
 	@PrimaryKey
 	@ForeignKey(table = ProductTable.class)
 	protected String productCode;
+	@Column
+	@Check("%NAME% > 0")
+	protected int count;
 
 }
