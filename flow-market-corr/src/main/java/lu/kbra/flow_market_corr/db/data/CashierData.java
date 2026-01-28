@@ -23,4 +23,21 @@ public class CashierData implements DataBaseEntry {
 		this.ip = ip;
 	}
 
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public String getIp() {
+		return ip;
+	}
+
+	@Override
+	public String toString() {
+		return "CashierData [id=" + id + ", ip=" + ip + "]";
+	}
+
 }
