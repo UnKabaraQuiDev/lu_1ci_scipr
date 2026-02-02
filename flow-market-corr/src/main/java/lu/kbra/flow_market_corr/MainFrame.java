@@ -6,30 +6,42 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.SQLSyntaxErrorException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Arrays;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
+import lu.kbra.flow_market_corr.db.TransactionType;
 import lu.kbra.flow_market_corr.db.data.BillData;
 import lu.kbra.flow_market_corr.db.data.CashierData;
 import lu.kbra.flow_market_corr.db.data.ItemData;
+import lu.kbra.flow_market_corr.db.data.VendorData;
 import lu.kbra.flow_market_corr.db.table.BillTable;
 import lu.kbra.flow_market_corr.db.table.CashierTable;
 import lu.kbra.flow_market_corr.db.table.ItemTable;
 import lu.kbra.flow_market_corr.db.table.VendorTable;
 import lu.pcy113.pclib.db.DataBase;
 import lu.pcy113.pclib.db.DataBaseConnector;
+import lu.pcy113.pclib.db.query.QueryBuilder;
 
 public class MainFrame extends JFrame {
 
@@ -63,7 +75,7 @@ public class MainFrame extends JFrame {
 		currentCashier = cashiers.loadIfExistsElseInsert(new CashierData(InetAddress.getLocalHost().getHostAddress())).run();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 450, 412);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -72,24 +84,94 @@ public class MainFrame extends JFrame {
 		JPanel panel = new JPanel();
 		contentPane.add(panel, BorderLayout.CENTER);
 
+		JPopupMenu popup = new JPopupMenu();
+
 		vendorCode = new JTextField();
 		vendorCode.setColumns(10);
+		vendorCode.getDocument().addDocumentListener(new DocumentListener() {
+			public void insertUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			public void removeUpdate(DocumentEvent e) {
+				showSuggestions();
+			}
+
+			public void changedUpdate(DocumentEvent e) {
+			}
+
+			private void showSuggestions() {
+				popup.setVisible(false);
+				popup.removeAll();
+
+				String input = vendorCode.getText().toLowerCase();
+				if (input.isEmpty())
+					return;
+
+				for (VendorData word : vendors
+						.query(QueryBuilder
+								.<VendorData>select()
+								.where(cb -> cb
+										.match("vendor_code", "LIKE", input + "%")
+										.or(cc -> cc.match("name", "LIKE", "%" + input + "%")))
+								.list())
+						.run()) {
+					JMenuItem item = new JMenuItem(word.getName() + " (" + word.getVendorCode() + ")");
+					item.addActionListener(e -> {
+						vendorCode.setText(word.getVendorCode());
+						popup.setVisible(false);
+					});
+					popup.add(item);
+				}
+
+				if (popup.getComponentCount() > 0) {
+					popup.show(vendorCode, 0, vendorCode.getHeight());
+				}
+			}
+		});
 
 		JLabel lblNewLabel = new JLabel("Vendor Code");
 
 		JLabel lblPrice = new JLabel("Price");
 
 		JSpinner price = new JSpinner();
+		price.setModel(new SpinnerNumberModel(0f, 0, 1000000, 0.01));
+
+		JList list = new JList();
 
 		JButton btnSubmitAdd = new JButton("Submit & Add");
 		btnSubmitAdd.addActionListener(a -> {
-			items.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(), (int) price.getValue())).thenConsume(e -> {
-				vendorCode.setText("");
-				price.setValue(0);
-			}).run();
+			if (currentTransaction == null) {
+				currentTransaction = bills.insertAndReload(new BillData(currentCashier.getId())).run();
+			}
+
+			items
+					.loadPKIfExists(new ItemData(currentTransaction.getId(), vendorCode.getText(), (int) price.getValue()))
+					.toOptional()
+					.run()
+					.ifPresentOrElse(e -> {
+						e.setPrice((int) price.getValue());
+						items.updateAndReload(e).run();
+					}, () -> {
+						items.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(), (int) price.getValue())).run();
+					});
+
+			vendorCode.setText("");
+			price.setValue(0);
+
+			list
+					.setListData(items
+							.query(QueryBuilder.<ItemData>select().where(cb -> cb.match("bill_id", "=", currentTransaction.getId())).list())
+							.run()
+							.stream()
+							.map(c -> c.getVendorCode() + " | " + c.getPrice())
+							.toArray());
 		});
 
-		JButton btnSubmitSave = new JButton("Submit & Save");
+		JComboBox<String> comboBox = new JComboBox<>(
+				Arrays.stream(TransactionType.values()).map(c -> c.name().toLowerCase()).toArray(String[]::new));
+
+		JButton btnSubmitSave = new JButton("Pay");
 		btnSubmitSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (currentTransaction == null) {
@@ -97,6 +179,7 @@ public class MainFrame extends JFrame {
 					return;
 				}
 
+				currentTransaction.setPayementMethod(TransactionType.valueOf(((String) comboBox.getSelectedItem()).toUpperCase()));
 				if (!vendorCode.getText().isBlank()) {
 					items
 							.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(), (int) price.getValue()))
@@ -122,68 +205,57 @@ public class MainFrame extends JFrame {
 		});
 
 		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel
-				.setHorizontalGroup(gl_panel
-						.createParallelGroup(Alignment.TRAILING)
-						.addGroup(gl_panel
-								.createSequentialGroup()
-								.addContainerGap(102, Short.MAX_VALUE)
-								.addGroup(gl_panel
-										.createParallelGroup(Alignment.LEADING)
-										.addGroup(gl_panel.createSequentialGroup().addGap(12).addComponent(btnNewBill))
-										.addGroup(gl_panel
-												.createParallelGroup(Alignment.LEADING, false)
-												.addGroup(gl_panel
-														.createSequentialGroup()
-														.addComponent(btnSubmitAdd)
-														.addPreferredGap(ComponentPlacement.RELATED,
-																GroupLayout.DEFAULT_SIZE,
-																Short.MAX_VALUE)
-														.addComponent(btnSubmitSave))
-												.addGroup(gl_panel
-														.createSequentialGroup()
-														.addGroup(gl_panel
-																.createParallelGroup(Alignment.LEADING)
-																.addComponent(lblNewLabel)
-																.addComponent(lblPrice))
-														.addGap(51)
-														.addGroup(gl_panel
-																.createParallelGroup(Alignment.TRAILING, false)
-																.addComponent(price,
-																		GroupLayout.PREFERRED_SIZE,
-																		GroupLayout.DEFAULT_SIZE,
-																		GroupLayout.PREFERRED_SIZE)
-																.addComponent(vendorCode)))))
-								.addGap(94)));
-		gl_panel
-				.setVerticalGroup(gl_panel
-						.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_panel
-								.createSequentialGroup()
-								.addGap(39)
-								.addGroup(gl_panel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(vendorCode,
-												GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE,
-												GroupLayout.PREFERRED_SIZE)
-										.addComponent(lblNewLabel))
-								.addGap(18)
-								.addGroup(gl_panel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(lblPrice)
-										.addComponent(price,
-												GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE,
-												GroupLayout.PREFERRED_SIZE))
-								.addGap(18)
-								.addGroup(gl_panel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(btnSubmitAdd)
-										.addComponent(btnSubmitSave))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addComponent(btnNewBill)
-								.addContainerGap(80, Short.MAX_VALUE)));
+		gl_panel.setHorizontalGroup(
+			gl_panel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel.createSequentialGroup()
+					.addContainerGap(88, Short.MAX_VALUE)
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel.createSequentialGroup()
+							.addGap(12)
+							.addComponent(btnNewBill))
+						.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
+							.addGroup(gl_panel.createSequentialGroup()
+								.addComponent(btnSubmitAdd)
+								.addGap(56)
+								.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE))
+							.addGroup(gl_panel.createSequentialGroup()
+								.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+									.addComponent(lblNewLabel)
+									.addComponent(lblPrice))
+								.addGap(51)
+								.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING, false)
+									.addComponent(price, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addComponent(vendorCode)))
+							.addComponent(btnSubmitSave)))
+					.addGap(97))
+				.addGroup(gl_panel.createSequentialGroup()
+					.addGap(93)
+					.addComponent(list, GroupLayout.PREFERRED_SIZE, 271, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(76, Short.MAX_VALUE))
+		);
+		gl_panel.setVerticalGroup(
+			gl_panel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel.createSequentialGroup()
+					.addGap(39)
+					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(vendorCode, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblNewLabel))
+					.addGap(18)
+					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblPrice)
+						.addComponent(price, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(18)
+					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnSubmitAdd)
+						.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnNewBill)
+						.addComponent(btnSubmitSave))
+					.addGap(38)
+					.addComponent(list, GroupLayout.PREFERRED_SIZE, 142, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		);
 		panel.setLayout(gl_panel);
 
 	}
