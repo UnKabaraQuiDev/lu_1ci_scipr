@@ -146,14 +146,16 @@ public class MainFrame extends JFrame {
 			}
 
 			items
-					.loadPKIfExists(new ItemData(currentTransaction.getId(), vendorCode.getText(), (int) price.getValue()))
+					.loadPKIfExists(new ItemData(currentTransaction.getId(), vendorCode.getText(), (float) price.getValue()))
 					.toOptional()
 					.run()
 					.ifPresentOrElse(e -> {
-						e.setPrice((int) price.getValue());
+						e.setPrice(e.getPrice() + (float) price.getValue());
 						items.updateAndReload(e).run();
 					}, () -> {
-						items.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(), (int) price.getValue())).run();
+						items
+								.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(), (float) price.getValue()))
+								.run();
 					});
 
 			vendorCode.setText("");
@@ -205,57 +207,80 @@ public class MainFrame extends JFrame {
 		});
 
 		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel.setHorizontalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addContainerGap(88, Short.MAX_VALUE)
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_panel.createSequentialGroup()
-							.addGap(12)
-							.addComponent(btnNewBill))
-						.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
-							.addGroup(gl_panel.createSequentialGroup()
-								.addComponent(btnSubmitAdd)
-								.addGap(56)
-								.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE))
-							.addGroup(gl_panel.createSequentialGroup()
-								.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-									.addComponent(lblNewLabel)
-									.addComponent(lblPrice))
-								.addGap(51)
-								.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING, false)
-									.addComponent(price, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(vendorCode)))
-							.addComponent(btnSubmitSave)))
-					.addGap(97))
-				.addGroup(gl_panel.createSequentialGroup()
-					.addGap(93)
-					.addComponent(list, GroupLayout.PREFERRED_SIZE, 271, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(76, Short.MAX_VALUE))
-		);
-		gl_panel.setVerticalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addGap(39)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(vendorCode, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblNewLabel))
-					.addGap(18)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblPrice)
-						.addComponent(price, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnSubmitAdd)
-						.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnNewBill)
-						.addComponent(btnSubmitSave))
-					.addGap(38)
-					.addComponent(list, GroupLayout.PREFERRED_SIZE, 142, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-		);
+		gl_panel
+				.setHorizontalGroup(gl_panel
+						.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel
+								.createSequentialGroup()
+								.addContainerGap(88, Short.MAX_VALUE)
+								.addGroup(gl_panel
+										.createParallelGroup(Alignment.LEADING)
+										.addGroup(gl_panel.createSequentialGroup().addGap(12).addComponent(btnNewBill))
+										.addGroup(gl_panel
+												.createParallelGroup(Alignment.TRAILING)
+												.addGroup(gl_panel
+														.createSequentialGroup()
+														.addComponent(btnSubmitAdd)
+														.addGap(56)
+														.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE))
+												.addGroup(gl_panel
+														.createSequentialGroup()
+														.addGroup(gl_panel
+																.createParallelGroup(Alignment.LEADING)
+																.addComponent(lblNewLabel)
+																.addComponent(lblPrice))
+														.addGap(51)
+														.addGroup(gl_panel
+																.createParallelGroup(Alignment.TRAILING, false)
+																.addComponent(price,
+																		GroupLayout.PREFERRED_SIZE,
+																		GroupLayout.DEFAULT_SIZE,
+																		GroupLayout.PREFERRED_SIZE)
+																.addComponent(vendorCode)))
+												.addComponent(btnSubmitSave)))
+								.addGap(97))
+						.addGroup(gl_panel
+								.createSequentialGroup()
+								.addGap(93)
+								.addComponent(list, GroupLayout.PREFERRED_SIZE, 271, GroupLayout.PREFERRED_SIZE)
+								.addContainerGap(76, Short.MAX_VALUE)));
+		gl_panel
+				.setVerticalGroup(gl_panel
+						.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel
+								.createSequentialGroup()
+								.addGap(39)
+								.addGroup(gl_panel
+										.createParallelGroup(Alignment.BASELINE)
+										.addComponent(vendorCode,
+												GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE,
+												GroupLayout.PREFERRED_SIZE)
+										.addComponent(lblNewLabel))
+								.addGap(18)
+								.addGroup(gl_panel
+										.createParallelGroup(Alignment.BASELINE)
+										.addComponent(lblPrice)
+										.addComponent(price,
+												GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE,
+												GroupLayout.PREFERRED_SIZE))
+								.addGap(18)
+								.addGroup(gl_panel
+										.createParallelGroup(Alignment.BASELINE)
+										.addComponent(btnSubmitAdd)
+										.addComponent(comboBox,
+												GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE,
+												GroupLayout.PREFERRED_SIZE))
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addGroup(gl_panel
+										.createParallelGroup(Alignment.BASELINE)
+										.addComponent(btnNewBill)
+										.addComponent(btnSubmitSave))
+								.addGap(38)
+								.addComponent(list, GroupLayout.PREFERRED_SIZE, 142, GroupLayout.PREFERRED_SIZE)
+								.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		panel.setLayout(gl_panel);
 
 	}
