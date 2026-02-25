@@ -10,6 +10,7 @@ import lu.pcy113.pclib.db.loader.BufferedPagedEnumeration;
 import lu.kbra.flow_market_corr.db.ro_data.VendorProfitROData;
 import lu.kbra.flow_market_corr.db.table.ProductTable;
 import lu.kbra.flow_market_corr.db.table.TransactionProductTable;
+import lu.kbra.flow_market_corr.db.table.BillTable;
 import lu.kbra.flow_market_corr.db.table.ItemTable;
 import lu.kbra.flow_market_corr.db.table.VendorTable;
 
@@ -18,14 +19,14 @@ import lu.kbra.flow_market_corr.db.table.VendorTable;
 		tables = {
 //				@ViewTable(typeName = TransactionTable.class),
 				@ViewTable(
-						typeName = TransactionProductTable.class//,
+						typeName = BillTable.class//,
 //						join = Type.LEFT,
 //						on = "transaction_product.transaction_id = transaction.id"
 				),
 				@ViewTable(
-						typeName = ProductTable.class,
+						typeName = ItemTable.class,
 						join = Type.LEFT,
-						on = "product.product_code = transaction_product.product_code",
+						on = "item.bill_id = transaction_product.product_code",
 						columns = {
 								@ViewColumn(func = "SUM(COALESCE(product.price * transaction_product.count, 0)) + SUM(COALESCE(transaction_supplement.price, 0))", asName = "total_money"),
 								@ViewColumn(

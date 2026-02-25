@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -22,11 +23,9 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -139,6 +138,8 @@ public class MainFrame extends JFrame {
 
 		JList list = new JList();
 
+		JLabel lblTotal = new JLabel("total");
+
 		JButton btnSubmitAdd = new JButton("Submit & Add");
 		btnSubmitAdd.addActionListener(a -> {
 			if (currentTransaction == null) {
@@ -146,7 +147,8 @@ public class MainFrame extends JFrame {
 			}
 
 			items
-					.loadPKIfExists(new ItemData(currentTransaction.getId(), vendorCode.getText(), (float) price.getValue()))
+					.loadPKIfExists(
+							new ItemData(currentTransaction.getId(), vendorCode.getText(), ((Double) price.getValue()).floatValue()))
 					.toOptional()
 					.run()
 					.ifPresentOrElse(e -> {
@@ -154,20 +156,19 @@ public class MainFrame extends JFrame {
 						items.updateAndReload(e).run();
 					}, () -> {
 						items
-								.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(), (float) price.getValue()))
+								.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(),
+										((Double) price.getValue()).floatValue()))
 								.run();
 					});
 
 			vendorCode.setText("");
 			price.setValue(0);
 
-			list
-					.setListData(items
-							.query(QueryBuilder.<ItemData>select().where(cb -> cb.match("bill_id", "=", currentTransaction.getId())).list())
-							.run()
-							.stream()
-							.map(c -> c.getVendorCode() + " | " + c.getPrice())
-							.toArray());
+			final List<ItemData> ll = items
+					.query(QueryBuilder.<ItemData>select().where(cb -> cb.match("bill_id", "=", currentTransaction.getId())).list())
+					.run();
+			list.setListData(ll.stream().map(c -> c.getVendorCode() + " | " + c.getPrice()).toArray());
+			lblTotal.setText(Double.toString(ll.stream().mapToDouble(c -> c.getPrice()).sum()) + "€");
 		});
 
 		JComboBox<String> comboBox = new JComboBox<>(
@@ -184,7 +185,8 @@ public class MainFrame extends JFrame {
 				currentTransaction.setPayementMethod(TransactionType.valueOf(((String) comboBox.getSelectedItem()).toUpperCase()));
 				if (!vendorCode.getText().isBlank()) {
 					items
-							.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(), (int) price.getValue()))
+							.insertAndReload(new ItemData(currentTransaction.getId(), vendorCode.getText(),
+									((Double) price.getValue()).floatValue()))
 							.thenConsume(e -> {
 								vendorCode.setText("");
 								price.setValue(0);
@@ -193,7 +195,11 @@ public class MainFrame extends JFrame {
 				}
 
 				currentTransaction.setTimestamp(Timestamp.from(Instant.now()));
-				bills.updateAndReload(currentTransaction).thenConsume(c -> currentTransaction = null).run();
+				bills.updateAndReload(currentTransaction).thenConsume(c -> {
+					currentTransaction = null;
+					list.setListData(new Object[0]);
+				}).run();
+				lblTotal.setText("");
 			}
 		});
 
@@ -243,7 +249,9 @@ public class MainFrame extends JFrame {
 								.createSequentialGroup()
 								.addGap(93)
 								.addComponent(list, GroupLayout.PREFERRED_SIZE, 271, GroupLayout.PREFERRED_SIZE)
-								.addContainerGap(76, Short.MAX_VALUE)));
+								.addContainerGap(76, Short.MAX_VALUE))
+						.addGroup(Alignment.TRAILING,
+								gl_panel.createSequentialGroup().addContainerGap(199, Short.MAX_VALUE).addComponent(lblTotal).addGap(181)));
 		gl_panel
 				.setVerticalGroup(gl_panel
 						.createParallelGroup(Alignment.LEADING)
@@ -278,7 +286,9 @@ public class MainFrame extends JFrame {
 										.createParallelGroup(Alignment.BASELINE)
 										.addComponent(btnNewBill)
 										.addComponent(btnSubmitSave))
-								.addGap(38)
+								.addGap(15)
+								.addComponent(lblTotal)
+								.addPreferredGap(ComponentPlacement.RELATED)
 								.addComponent(list, GroupLayout.PREFERRED_SIZE, 142, GroupLayout.PREFERRED_SIZE)
 								.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		panel.setLayout(gl_panel);
