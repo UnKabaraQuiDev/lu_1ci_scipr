@@ -8,8 +8,8 @@ public class Person implements Comparable<Person> {
 	private final String surname;
 	private final String title;
 
-	private Person boss;
-	private SortedSet<Person> subordinates;
+	private Person parent;
+	private final SortedSet<Person> subordinates;
 
 	public Person(String firstName, String surname, String title) {
 		this.firstName = firstName;
@@ -18,8 +18,30 @@ public class Person implements Comparable<Person> {
 		this.subordinates = new TreeSet<>();
 	}
 
-	public Person getBoss() {
-		return boss;
+	public Person(String firstName, String surname, String title, Person parent) {
+		this.firstName = firstName;
+		this.surname = surname;
+		this.title = title;
+		this.subordinates = new TreeSet<>();
+
+		this.parent = parent;
+		parent.getSubordinates().add(this);
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public String getSurname() {
+		return surname;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public Person getParent() {
+		return parent;
 	}
 
 	public SortedSet<Person> getSubordinates() {
@@ -28,13 +50,13 @@ public class Person implements Comparable<Person> {
 
 	public void addSubordinate(Person worker) {
 		Objects.requireNonNull(worker);
-		worker.boss = this;
+		worker.parent = this;
 		subordinates.add(worker);
 	}
 
 	public void removeSubordinate(Person worker) {
 		if (subordinates.remove(worker)) {
-			worker.boss = null;
+			worker.parent = null;
 		}
 	}
 
