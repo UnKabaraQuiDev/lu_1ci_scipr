@@ -103,25 +103,21 @@ public class MainFrame extends JFrame {
 	}
 
 	private void addDevice() {
-		try {
-			final String name = this.nameField.getText().trim();
-			final String type = this.typeField.getText().trim();
-			final String ip = this.ipField.getText().trim();
-			final String parent = this.parentField.getText().trim();
+		final String name = this.nameField.getText().trim();
+		final String type = this.typeField.getText().trim();
+		final String ip = this.ipField.getText().trim();
+		final String parent = this.parentField.getText().trim();
 
-			if (name.isBlank()) {
-				JOptionPane.showMessageDialog(this, "Name is required.");
-				return;
-			}
-
-			final Device device = new Device(parent, type, name, ip);
-			this.addDeviceToStructure(device);
-			this.refreshPingStatuses();
-			this.drawPanel.repaint();
-			this.clearForm();
-		} catch (final NumberFormatException ex) {
-			JOptionPane.showMessageDialog(this, "X and Y must be numbers.");
+		if (name.isBlank()) {
+			JOptionPane.showMessageDialog(this, "Name is required.");
+			return;
 		}
+
+		final Device device = new Device(parent, type, name, ip);
+		this.addDeviceToStructure(device);
+		this.refreshPingStatuses();
+		this.drawPanel.repaint();
+		this.clearForm();
 	}
 
 	private void addDeviceToStructure(final Device device) {
