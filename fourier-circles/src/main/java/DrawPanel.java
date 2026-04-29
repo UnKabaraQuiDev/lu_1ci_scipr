@@ -15,6 +15,7 @@ import javax.swing.Timer;
 
 public class DrawPanel extends JPanel {
 
+	private static final long serialVersionUID = 6257697009562039501L;
 	private static final int TIMER_DELAY_MS = 16;
 	private static final double BASE_RADIUS = 120.0;
 	private static final int MIN_CIRCLES = 1;
@@ -24,139 +25,139 @@ public class DrawPanel extends JPanel {
 	private int circleCount = 4;
 	private double radiusRatio = 0.60;
 	private double rotationSpeed = 0.35;
+	private double speedRatio = 1.2;
+
 	private double time = 0.0;
-	private boolean alternateDirection = false;
 	private int sampleCount = 1;
 
 	private final List<Point2D.Double> tracePoints = new ArrayList<>();
 	private final Timer timer;
 
 	public DrawPanel() {
-		setPreferredSize(new Dimension(1000, 700));
-		setBackground(Color.WHITE);
+		this.setPreferredSize(new Dimension(1000, 700));
+		this.setBackground(Color.WHITE);
 
-		timer = new Timer(TIMER_DELAY_MS, e -> {
-			double previousTime = time;
-			double deltaTime = TIME_STEP * rotationSpeed;
+		this.timer = new Timer(TIMER_DELAY_MS, e -> {
+			final double previousTime = this.time;
+			final double deltaTime = TIME_STEP * this.rotationSpeed;
 
-			time += deltaTime;
+			this.time += deltaTime;
 
-			int samples = Math.max(1, sampleCount);
+			final int samples = Math.max(1, this.sampleCount);
 
 			for (int i = 1; i <= samples; i++) {
-				double t = previousTime + (deltaTime * i / samples);
-				Point2D.Double tip = computeLastCenterAtTime(t);
-				tracePoints.add(tip);
+				final double t = previousTime + (deltaTime * i / samples);
+				final Point2D.Double tip = this.computeLastCenterAtTime(t);
+				this.tracePoints.add(tip);
 			}
 
-			trimTrace();
-			repaint();
+			this.trimTrace();
+			this.repaint();
 		});
-		timer.start();
+		this.timer.start();
 	}
 
 	public void addCircle() {
-		circleCount++;
-		repaint();
+		this.circleCount++;
+		this.repaint();
 	}
 
 	public void removeLastCircle() {
-		if (circleCount > MIN_CIRCLES) {
-			circleCount--;
-			repaint();
+		if (this.circleCount > MIN_CIRCLES) {
+			this.circleCount--;
+			this.repaint();
 		}
 	}
 
-	public void setRadiusRatio(double radiusRatio) {
+	public void setRadiusRatio(final double radiusRatio) {
 		this.radiusRatio = radiusRatio;
-		repaint();
+		this.repaint();
 	}
 
-	public void setRotationSpeed(double rotationSpeed) {
+	public void setRotationSpeed(final double rotationSpeed) {
 		this.rotationSpeed = rotationSpeed;
 	}
 
-	public void setSampleCount(int sampleCount) {
+	public void setSpeedRatio(final double speedRatio) {
+		this.speedRatio = speedRatio;
+	}
+
+	public void setSampleCount(final int sampleCount) {
 		this.sampleCount = Math.max(1, sampleCount);
 	}
 
-	public void setAlternateDirection(boolean alternateDirection) {
-		this.alternateDirection = alternateDirection;
-		repaint();
-	}
-
 	public List<Point2D.Double> getTracePoints() {
-		return tracePoints;
+		return this.tracePoints;
 	}
 
 	private void trimTrace() {
-		while (tracePoints.size() > MAX_TRACE_POINTS) {
-			tracePoints.remove(0);
+		while (this.tracePoints.size() > MAX_TRACE_POINTS) {
+			this.tracePoints.remove(0);
 		}
 	}
 
-	private Point2D.Double computeLastCenter() {
-		return computeLastCenterAtTime(time);
-	}
-
-	private Point2D.Double computeLastCenterAtTime(double currentTime) {
-		double centerX = getWidth() / 2.0;
-		double centerY = getHeight() / 2.0;
+	private Point2D.Double computeLastCenterAtTime(final double currentTime) {
+		final double centerX = this.getWidth() / 2.0;
+		final double centerY = this.getHeight() / 2.0;
 
 		double parentX = centerX;
 		double parentY = centerY;
 		double parentRadius = BASE_RADIUS;
 
-		for (int i = 0; i < circleCount; i++) {
-			double currentRadius = parentRadius * radiusRatio;
-			double direction = getDirectionForCircle(i);
+		double currentSpeed = 1.0;
 
-			double angle = currentTime * (i + 1) * direction;
+		for (int i = 0; i < this.circleCount; i++) {
+			final double currentRadius = parentRadius * this.radiusRatio;
 
-			double currentX = parentX + Math.cos(angle) * (parentRadius + currentRadius);
-			double currentY = parentY + Math.sin(angle) * (parentRadius + currentRadius);
+			final double angle = currentTime * currentSpeed;
+
+			final double currentX = parentX + Math.cos(angle) * (parentRadius + currentRadius);
+			final double currentY = parentY + Math.sin(angle) * (parentRadius + currentRadius);
 
 			parentX = currentX;
 			parentY = currentY;
 			parentRadius = currentRadius;
+
+			currentSpeed *= this.speedRatio;
 		}
 
 		return new Point2D.Double(parentX, parentY);
 	}
 
 	@Override
-	protected void paintComponent(Graphics g) {
+	protected void paintComponent(final Graphics g) {
 		super.paintComponent(g);
 
-		Graphics2D g2 = (Graphics2D) g.create();
+		final Graphics2D g2 = (Graphics2D) g.create();
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		double rootX = getWidth() / 2.0;
-		double rootY = getHeight() / 2.0;
+		final double rootX = this.getWidth() / 2.0;
+		final double rootY = this.getHeight() / 2.0;
 
 		double parentX = rootX;
 		double parentY = rootY;
 		double parentRadius = BASE_RADIUS;
 
 		g2.setColor(new Color(180, 180, 180));
-		drawCircle(g2, parentX, parentY, parentRadius);
+		this.drawCircle(g2, parentX, parentY, parentRadius);
 
+		double currentSpeed = 1.0;
 		Point2D.Double lastCenter = null;
 
-		for (int i = 0; i < circleCount; i++) {
-			double currentRadius = parentRadius * radiusRatio;
-			double direction = getDirectionForCircle(i);
-			double angle = time * (i + 1) * direction;
+		for (int i = 0; i < this.circleCount; i++) {
+			final double currentRadius = parentRadius * this.radiusRatio;
 
-			double currentX = parentX + Math.cos(angle) * (parentRadius + currentRadius);
-			double currentY = parentY + Math.sin(angle) * (parentRadius + currentRadius);
+			final double angle = this.time * currentSpeed;
+
+			final double currentX = parentX + Math.cos(angle) * (parentRadius + currentRadius);
+			final double currentY = parentY + Math.sin(angle) * (parentRadius + currentRadius);
 
 			g2.setColor(new Color(120, 120, 120));
 			g2.setStroke(new BasicStroke(1.5f));
 			g2.drawLine((int) Math.round(parentX), (int) Math.round(parentY), (int) Math.round(currentX), (int) Math.round(currentY));
 
 			g2.setColor(new Color(80, 80, 80));
-			drawCircle(g2, currentX, currentY, currentRadius);
+			this.drawCircle(g2, currentX, currentY, currentRadius);
 
 			g2.setColor(Color.RED);
 			g2.fill(new Ellipse2D.Double(currentX - 3, currentY - 3, 6, 6));
@@ -164,11 +165,13 @@ public class DrawPanel extends JPanel {
 			parentX = currentX;
 			parentY = currentY;
 			parentRadius = currentRadius;
+
+			currentSpeed *= this.speedRatio;
 			lastCenter = new Point2D.Double(currentX, currentY);
 		}
 
 		g2.setColor(Color.BLUE);
-		for (Point2D.Double p : tracePoints) {
+		for (final Point2D.Double p : this.tracePoints) {
 			g2.fillRect((int) Math.round(p.x), (int) Math.round(p.y), 2, 2);
 		}
 
@@ -180,15 +183,7 @@ public class DrawPanel extends JPanel {
 		g2.dispose();
 	}
 
-	private void drawCircle(Graphics2D g2, double centerX, double centerY, double radius) {
+	private void drawCircle(final Graphics2D g2, final double centerX, final double centerY, final double radius) {
 		g2.draw(new Ellipse2D.Double(centerX - radius, centerY - radius, radius * 2, radius * 2));
 	}
-
-	private double getDirectionForCircle(int index) {
-		if (!alternateDirection) {
-			return 1.0;
-		}
-		return (index % 2 == 0) ? 1.0 : -1.0;
-	}
-
 }

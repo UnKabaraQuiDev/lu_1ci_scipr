@@ -16,6 +16,7 @@ public class MainFrame extends JFrame {
 	private final DrawPanel drawPanel;
 	private final JLabel ratioValueLabel;
 	private final JLabel speedValueLabel;
+	private final JLabel speedRatioValueLabel;
 
 	public MainFrame() {
 		super("Fourier Circles");
@@ -32,13 +33,11 @@ public class MainFrame extends JFrame {
 
 		JButton addButton = new JButton("Add Circle");
 		JButton removeButton = new JButton("Remove Last");
+		JButton clearButton = new JButton("Clear");
 
-		JButton clearButton = new JButton("Clear button");
 		clearButton.addActionListener(e -> drawPanel.getTracePoints().clear());
 
-		JCheckBox alternateDirectionCheckBox = new JCheckBox("Alternate direction", false);
-		alternateDirectionCheckBox.addActionListener(e -> drawPanel.setAlternateDirection(alternateDirectionCheckBox.isSelected()));
-
+		// Samples
 		JSlider sampleSlider = new JSlider(1, 50, 1);
 		sampleSlider.setMajorTickSpacing(10);
 		sampleSlider.setMinorTickSpacing(1);
@@ -52,7 +51,7 @@ public class MainFrame extends JFrame {
 			sampleValueLabel.setText("Samples: " + samples);
 		});
 
-		// Ratio slider: 10..95 means 0.10..0.95
+		// Radius ratio
 		JSlider ratioSlider = new JSlider(10, 95, 60);
 		ratioSlider.setMajorTickSpacing(17);
 		ratioSlider.setMinorTickSpacing(5);
@@ -60,22 +59,19 @@ public class MainFrame extends JFrame {
 
 		ratioValueLabel = new JLabel(String.format("Ratio: %.2f", ratioSlider.getValue() / 100.0));
 
-		// Speed slider: 1..200 means 0.01..2.00
-		JSlider speedSlider = new JSlider(1, 200, 35);
-		speedSlider.setMajorTickSpacing(25);
-		speedSlider.setMinorTickSpacing(5);
-		speedSlider.setPaintTicks(true);
-
-		speedValueLabel = new JLabel(String.format("Speed: %.2f", speedSlider.getValue() / 100.0));
-
-		addButton.addActionListener(e -> drawPanel.addCircle());
-		removeButton.addActionListener(e -> drawPanel.removeLastCircle());
-
 		ratioSlider.addChangeListener(e -> {
 			double ratio = ratioSlider.getValue() / 100.0;
 			drawPanel.setRadiusRatio(ratio);
 			ratioValueLabel.setText(String.format("Ratio: %.2f", ratio));
 		});
+
+		// Global speed [-2, 2]
+		JSlider speedSlider = new JSlider(-200, 200, 35);
+		speedSlider.setMajorTickSpacing(50);
+		speedSlider.setMinorTickSpacing(10);
+		speedSlider.setPaintTicks(true);
+
+		speedValueLabel = new JLabel(String.format("Speed: %.2f", speedSlider.getValue() / 100.0));
 
 		speedSlider.addChangeListener(e -> {
 			double speed = speedSlider.getValue() / 100.0;
@@ -83,16 +79,39 @@ public class MainFrame extends JFrame {
 			speedValueLabel.setText(String.format("Speed: %.2f", speed));
 		});
 
+		// Speed ratio between circles
+		JSlider speedRatioSlider = new JSlider(50, 200, 120); // 0.5 to 2.0
+		speedRatioSlider.setMajorTickSpacing(25);
+		speedRatioSlider.setMinorTickSpacing(5);
+		speedRatioSlider.setPaintTicks(true);
+
+		speedRatioValueLabel = new JLabel(String.format("Speed Ratio: %.2f", speedRatioSlider.getValue() / 100.0));
+
+		speedRatioSlider.addChangeListener(e -> {
+			double ratio = speedRatioSlider.getValue() / 100.0;
+			drawPanel.setSpeedRatio(ratio);
+			speedRatioValueLabel.setText(String.format("Speed Ratio: %.2f", ratio));
+		});
+
+		addButton.addActionListener(e -> drawPanel.addCircle());
+		removeButton.addActionListener(e -> drawPanel.removeLastCircle());
+
 		controlPanel.add(addButton);
 		controlPanel.add(removeButton);
 		controlPanel.add(clearButton);
+
 		controlPanel.add(new JLabel("Circle Ratio"));
 		controlPanel.add(ratioSlider);
 		controlPanel.add(ratioValueLabel);
+
 		controlPanel.add(new JLabel("Rotation Speed"));
 		controlPanel.add(speedSlider);
 		controlPanel.add(speedValueLabel);
-		controlPanel.add(alternateDirectionCheckBox);
+
+		controlPanel.add(new JLabel("Speed Ratio"));
+		controlPanel.add(speedRatioSlider);
+		controlPanel.add(speedRatioValueLabel);
+
 		controlPanel.add(sampleSlider);
 		controlPanel.add(sampleValueLabel);
 
@@ -102,5 +121,4 @@ public class MainFrame extends JFrame {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
 	}
-
 }
